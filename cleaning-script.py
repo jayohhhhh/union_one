@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import re
 from word2number import w2n
+from datetime import datetime
 
 def load_data(file_path):
     return pd.read_csv(file_path)
@@ -41,12 +42,28 @@ def convert_salaries(df):
     df['salary'] = df['salary'].apply(convert_written_to_number)
     return df
 
+def calculate_length_worked(df, current_date=None): # Create a column showing length of years worked
+    if current_date is None:
+        current_date = pd.to_datetime(datetime.now())
+    # Calculate length worked in years
+    df['length_worked_yrs'] = (current_date - pd.to_datetime(df['start_date'])).dt.days / 365.25
+    
+    # Handle cases where 'start_date' might be NaT (Not a Time)
+    df['length_worked_yrs'] = df['length_worked_yrs'].fillna(0)
+    return df
+
+def remove_salary_placeholders(df):
+    # Remove placeholder salaries to avoid skewed statistics in salary analysis.
+    df = df[df['salary'] != 50000]
+    return df
+
 def set_index(df): # Set 'member_id' column as index
     df.set_index('member_id', inplace=True)
     return df
 
 def save_cleaned_data(df, output_path):
     df.to_csv(output_path, index=True)
+    return df
 
 def main(input_path, output_path):
     # main function to clean the data
@@ -60,15 +77,20 @@ def main(input_path, output_path):
     df = fix_date_format(df)
     print("Converting written numbers to numeric...")
     df = convert_salaries(df)
+    print("Creating length worked column")
+    df = calculate_length_worked(df)
+    print("Removing salary placeholders")
+    df = remove_salary_placeholders(df)
     print("Setting member_id as index...")
     df = set_index(df)
     print("Saving cleaned data...")
     save_cleaned_data(df, output_path)
     print("Data cleaning complete.")
 
-    
-if __name__ == "__main__": # Replace 'path_to_your_input_file.csv' and 'path_to_your_output_file.csv' with the actual paths to your input and output files
+if __name__ == "__main__":
+    # Replace 'path_to_your_input_file.csv' and 'path_to_your_output_file.csv' with the actual paths to your input and output files
     input_path = 'census.csv'
     output_path = 'cleaned_census.csv'
     main(input_path, output_path)
     
+# Run "python cleaning_script.py" in your powershell after changing the input_path & output_path above.
