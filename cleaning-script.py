@@ -93,4 +93,4 @@ if __name__ == "__main__":
     output_path = 'cleaned_census.csv'
     main(input_path, output_path)
     
-# Run "python cleaning_script.py" in your powershell after changing the input_path & output_path above.
+# Run "python cleaning_script.py" in powershell after changing the input_path & output_path above.
